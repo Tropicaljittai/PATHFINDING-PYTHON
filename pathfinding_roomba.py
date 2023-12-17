@@ -29,6 +29,16 @@ class Pathfinder:
     def empty_path(self):
         self.path = []
 
+    def get_algorithm_name(self):
+        algorithm_names = {
+            1: "Dijkstra",
+            2: "A*",
+            3: "BFS",
+            4: "Best-First Search",
+            5: "DFS"
+        }
+        return algorithm_names.get(self.algorithm, "Unknown Algorithm")
+
     def draw_active_cell(self):
         mouse_pos = pygame.mouse.get_pos()
         row = mouse_pos[1] // 32
@@ -329,7 +339,8 @@ class Roomba(pygame.sprite.Sprite):
             # Path traversal is complete
             self.elapsed_time = time.time() - self.start_time
             global pathfinder
-            print(f"Chosen Algorithm: {pathfinder.algorithm}")
+            algo_names = pathfinder.get_algorithm_name()
+            print(f"Chosen Algorithm: {algo_names}")
             print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
             self.has_path = False  # Stop timing
 
