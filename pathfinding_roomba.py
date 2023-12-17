@@ -37,7 +37,8 @@ class Pathfinder:
             3: "BFS",
             4: "Best-First Search",
             5: "DFS",
-            6: "Iterative Deeping A*"
+            6: "Iterative Deeping A*",
+            7: "JPS"
         }
         return algorithm_names.get(self.algorithm, "Unknown Algorithm")
 
@@ -160,6 +161,102 @@ class Pathfinder:
                     min_threshold = temp
 
         return min_threshold
+
+ 
+    def jump_point_search(self, start_node, end_node):
+        pq = PriorityQueue()
+        start_node.distance = 0
+        pq.add(start_node)
+        distance = {node: float('inf') for row in self.grid for node in row}
+        distance[start_node] = 0
+        parent = {node: None for row in self.grid for node in row}
+
+        visited = set()
+
+        while not pq.is_empty():
+            current_node = pq.poll()
+            visited.add(current_node)
+            if current_node == end_node:
+                break
+
+            for neighbor in self.get_jps_neighbors(current_node, end_node):
+                if neighbor in visited:
+                    continue
+                dx, dy = abs(neighbor.col - current_node.col), abs(neighbor.row - current_node.row)
+                move_cost = 1.41 if dx == 1 and dy == 1 else 1
+                tentative_distance = distance[current_node] + move_cost
+                if tentative_distance < distance[neighbor]:
+                    distance[neighbor] = tentative_distance
+                    parent[neighbor] = current_node
+                    neighbor.distance = tentative_distance + self.heuristic(neighbor, end_node)
+                    if not pq.contains(neighbor):
+                        pq.add(neighbor)
+
+        path = []
+        current = end_node
+        while current is not None:
+            path.append(current)
+            current = parent[current]
+        return path[::-1]
+
+    def get_jps_neighbors(self, node, end_node):
+        neighbors = []
+
+        # Get forced neighbors
+        forced_neighbors = self.get_forced_neighbors(node, end_node)
+
+        # Add forced neighbors to the list
+        for neighbor in forced_neighbors:
+            neighbors.append(neighbor)
+
+        # Add natural neighbors to the list
+        natural_neighbors = self.get_neighbors(node)
+        for neighbor in natural_neighbors:
+            if neighbor not in neighbors and self.matrix[neighbor.row][neighbor.col] == 1:
+                neighbors.append(neighbor)
+
+        return neighbors
+
+    def get_forced_neighbors(self, node, end_node):
+        forced_neighbors = []
+
+        dx = end_node.col - node.col
+        dy = end_node.row - node.row
+
+        # Diagonal movement
+        if dx != 0 and dy != 0:
+            if dx > 0 and dy > 0:
+                if self.matrix[node.row + 1][node.col] == 1 and self.matrix[node.row][node.col + 1] == 1:
+                    forced_neighbors.append(self.grid[node.row + 1][node.col + 1])
+            elif dx > 0 and dy < 0:
+                if self.matrix[node.row - 1][node.col] == 1 and self.matrix[node.row][node.col + 1] == 1:
+                    forced_neighbors.append(self.grid[node.row - 1][node.col + 1])
+            elif dx < 0 and dy > 0:
+                if self.matrix[node.row + 1][node.col] == 1 and self.matrix[node.row][node.col - 1] == 1:
+                    forced_neighbors.append(self.grid[node.row + 1][node.col - 1])
+            elif dx < 0 and dy < 0:
+                if self.matrix[node.row - 1][node.col] == 1 and self.matrix[node.row][node.col - 1] == 1:
+                    forced_neighbors.append(self.grid[node.row - 1][node.col - 1])
+
+        # Horizontal movement
+        elif dx != 0:
+            if dx > 0:
+                if self.matrix[node.row][node.col + 1] == 1:
+                    forced_neighbors.append(self.grid[node.row][node.col + 1])
+            elif dx < 0:
+                if self.matrix[node.row][node.col - 1] == 1:
+                    forced_neighbors.append(self.grid[node.row][node.col - 1])
+
+        # Vertical movement
+        elif dy != 0:
+            if dy > 0:
+                if self.matrix[node.row + 1][node.col] == 1:
+                    forced_neighbors.append(self.grid[node.row + 1][node.col])
+            elif dy < 0:
+                if self.matrix[node.row - 1][node.col] == 1:
+                    forced_neighbors.append(self.grid[node.row - 1][node.col])
+
+        return forced_neighbors
 
     def dijkstra_search(self, start_node, end_node):
         pq = PriorityQueue()
@@ -301,6 +398,8 @@ class Pathfinder:
             self.path = self.dfs_search(start_node, end_node) 
         elif self.algorithm == 6:
             self.path = self.iter_deepening_a_star_search(start_node, end_node) 
+        elif self.algorithm == 7:
+            self.path = self.jump_point_search(start_node, end_node) 
 
         self.roomba.sprite.set_path(self.path)
 
@@ -488,7 +587,6 @@ class Roomba(pygame.sprite.Sprite):
                     frame.blit(sub_image, (frame_x, frame_y))
                     final_images.append(frame)
 
-            print(len(final_images))
             self.sprites = [final_images[4], final_images[5], final_images[6], final_images[7], final_images[4], final_images[5], final_images[6], final_images[7]]
             self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
@@ -515,7 +613,6 @@ class Roomba(pygame.sprite.Sprite):
                     frame.blit(sub_image, (frame_x, frame_y))
                     final_images.append(frame)
 
-            print(len(final_images))
             self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
             self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
@@ -584,7 +681,7 @@ matrix = [
     [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
     [0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]]
+    [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]]
 
 pathfinder = Pathfinder(matrix)
 font = pygame.font.SysFont("comicsansms", 25)
@@ -634,6 +731,9 @@ while True:
             elif event.key == pygame.K_6:
                 mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
                 pathfinder.algorithm = 6
+            elif event.key == pygame.K_7:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 7
             elif event.key == pygame.K_m:
                 if onMusic:
                     mixer.music.unpause()
