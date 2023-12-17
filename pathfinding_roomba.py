@@ -2,11 +2,6 @@ import time
 import tracemalloc
 import pygame, sys
 from pygame import mixer
-from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
-from pathfinding.finder.dijkstra import DijkstraFinder
-from pathfinding.core.diagonal_movement import DiagonalMovement
-
 import os
 from Node import *
 from PQ import PriorityQueue
@@ -426,7 +421,7 @@ class Pathfinder:
     def draw_path(self):
         if self.path and len(self.path) > 1:
             points = [(node.col * 32 + 16, node.row * 32 + 16) for node in self.path]
-            pygame.draw.lines(screen, '#4a4a4a', False, points, 5)
+            pygame.draw.lines(screen, '#4a4a4a', False, points, 3)
 
     def update(self):
         self.draw_active_cell()
@@ -586,9 +581,9 @@ class Roomba(pygame.sprite.Sprite):
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
         
         if pathfinder.algorithm == 4:
-            original_image = pygame.image.load('char2/bear_polar.png')
+            original_image = pygame.image.load('chicken.png')
 
-            rows, columns = 2, 4
+            rows, columns = 2, 4    
 
             sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
             frame_size = (48, 48)
@@ -612,9 +607,9 @@ class Roomba(pygame.sprite.Sprite):
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
         
         if pathfinder.algorithm == 5:
-            original_image = pygame.image.load('char2/penguin.png')
+            original_image = pygame.image.load('cow.png')
 
-            rows, columns = 1, 4
+            rows, columns = 2, 3
 
             sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
             frame_size = (48, 48)
@@ -636,7 +631,55 @@ class Roomba(pygame.sprite.Sprite):
             self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
             self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
-            
+
+        if pathfinder.algorithm == 6:
+            original_image = pygame.image.load('Characters_free/adam.png')
+
+            rows, columns = 1, 24
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[7], final_images[10], final_images[19], final_images[22], final_images[16], final_images[12], final_images[3], final_images[1]]
+
+        if pathfinder.algorithm == 7:
+            original_image = pygame.image.load('Characters_free/bob.png')
+
+            rows, columns = 1, 24
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[7], final_images[10], final_images[19], final_images[22], final_images[16], final_images[12], final_images[3], final_images[1]]
+
         self.spriteCounter += 1
         if self.spriteCounter > 17:
             if self.spriteNum == 1:
