@@ -465,6 +465,60 @@ class Roomba(pygame.sprite.Sprite):
             self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
             self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
             self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+        
+        if pathfinder.algorithm == 4:
+            original_image = pygame.image.load('char2/bear_polar.png')
+
+            rows, columns = 2, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            print(len(final_images))
+            self.sprites = [final_images[4], final_images[5], final_images[6], final_images[7], final_images[4], final_images[5], final_images[6], final_images[7]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+        
+        if pathfinder.algorithm == 5:
+            original_image = pygame.image.load('char2/penguin.png')
+
+            rows, columns = 1, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            print(len(final_images))
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
             
         self.spriteCounter += 1
         if self.spriteCounter > 17:
