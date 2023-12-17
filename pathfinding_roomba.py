@@ -1,5 +1,5 @@
 import time
-
+import os
 import pygame, sys
 from pygame import mixer
 from pathfinding.core.grid import Grid
@@ -101,7 +101,64 @@ class Pathfinder:
             current = parent[current]
         return path[::-1]
 
+    def iter_deepening_a_star_search(self, start_node, end_node):
+        # Initial threshold is the heuristic cost from the start to the end node
+        threshold = self.heuristic(start_node, end_node)
 
+        while True:
+            # Initialize the distance and parent dictionaries for this iteration
+            distance = {node: float('inf') for row in self.grid for node in row}
+            distance[start_node] = 0
+            parent = {node: None for row in self.grid for node in row}
+
+            # Perform the depth-limited search with the current threshold
+            temp = self.search(start_node, 0, threshold, end_node, distance, parent)
+            if temp == float('inf'):
+                # If temp is infinity, no path was found within the threshold
+                return None
+            elif temp == -1:
+                # If temp is -1, a path to the goal was found
+                # Reconstruct and return the path
+                path = []
+                current = end_node
+                while current:
+                    path.append(current)
+                    current = parent[current]
+                return path[::-1]
+            else:
+                # Increase the threshold for the next iteration
+                # This is the minimum f-cost that exceeded the current threshold
+                threshold = temp
+
+    def search(self, node, g, threshold, end_node, distance, parent):
+        # Calculate the f-cost for the node (g-cost + heuristic)
+        f = g + self.heuristic(node, end_node)
+        if f > threshold:
+            # If the f-cost exceeds the current threshold, return the f-cost
+            return f
+        if node == end_node:
+            # If the goal node is reached, return -1 to indicate success
+            return -1
+
+        # Initialize the minimum threshold for the next iteration
+        min_threshold = float('inf')
+        for successor in self.get_neighbors(node):
+            # Explore the neighbors of the current node
+            if distance[successor] > g + 1:
+                distance[successor] = g + 1
+                parent[successor] = node
+                # Recursively search from the neighbor
+                temp = self.search(successor, g + 1, threshold, end_node, distance, parent)
+
+                if temp == -1:
+                    # If the goal is found in the recursive search, return -1
+                    return -1
+                if temp < min_threshold:
+                    # Update the minimum threshold for the next iteration
+                    min_threshold = temp
+
+        return min_threshold
+    
     def dijkstra_search(self, start_node, end_node):
         pq = PriorityQueue()
         start_node.distance = 0
@@ -227,7 +284,7 @@ class Pathfinder:
         end_node = self.grid[end_y][end_x]
 
         if self.algorithm == 1:
-            self.path = self.dijkstra_search(start_node, end_node)
+            self.path = self.dijkstra_search(start_node, end_node)  
         elif self.algorithm == 2:
             self.path = self.a_star_search(start_node, end_node)
         elif self.algorithm == 3:
@@ -341,8 +398,64 @@ class Roomba(pygame.sprite.Sprite):
             global pathfinder
             algo_names = pathfinder.get_algorithm_name()
             print(f"Chosen Algorithm: {algo_names}")
-            print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
+            print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds at speed = 3")
             self.has_path = False  # Stop timing
+
+        if pathfinder.algorithm == 1:
+            self.sprites = [pygame.image.load('up1.png'), pygame.image.load('up2.png'), pygame.image.load('down1.png'),
+						pygame.image.load('down2.png'), pygame.image.load('left1.png'), pygame.image.load('left2.png'),
+						pygame.image.load('right1.png'), pygame.image.load('right2.png')]
+        if pathfinder.algorithm == 2:
+            original_image = pygame.image.load('char2/Male.png')
+
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+        if pathfinder.algorithm == 3:
+            original_image = pygame.image.load('char2/Female.png')
+
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+
 
         self.spriteCounter += 1
         if self.spriteCounter > 17:
