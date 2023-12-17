@@ -748,6 +748,12 @@ matrix = [
 
 pathfinder = Pathfinder(matrix)
 onMusic = True
+font = pygame.font.SysFont("Arial" , 30 , bold = True)
+
+def fps_counter():
+    fps = str(int(clock.get_fps()))
+    fps_t = font.render(fps , 1, pygame.Color("RED"))
+    screen.blit(fps_t,(60,100))
 
 music = mixer.music.load("sound/BGM.wav")
 mixer.music.play(-1)
@@ -761,9 +767,8 @@ AStarImage = pygame.image.load("Icons/A_STAR.png")
 BFSImage = pygame.image.load("Icons/BFS.png")
 DFSImage = pygame.image.load("Icons/DFS.png")
 BestFSImage = pygame.image.load("Icons/BEST_FS.png")
-
-
-algo = 1
+JPSImage = pygame.image.load("Icons/JPS.png")
+AStarIterationImage = pygame.image.load("Icons/A_STAR_ITERATION.png")
 
 while True:
     screen.blit(bg_surf, (0, 0))
@@ -772,9 +777,10 @@ while True:
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            tracemalloc.start()
-            pathfinder.create_path()
-            tracemalloc.stop()
+            if pathfinder.active_cell_value() == 1:
+                tracemalloc.start()
+                pathfinder.create_path()
+                tracemalloc.stop()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:
                 mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
@@ -803,6 +809,7 @@ while True:
                 else:
                     mixer.music.pause()
                 onMusic = False if onMusic else True
+
     if pathfinder.algorithm == 1:
         screen.blit(dijkstraImage, (860, 530))
     elif pathfinder.algorithm == 2:
@@ -813,8 +820,12 @@ while True:
         screen.blit(BestFSImage, (860, 530))
     elif pathfinder.algorithm == 5:
         screen.blit(DFSImage, (860, 530))
-    
+    elif pathfinder.algorithm == 6:
+        screen.blit(AStarIterationImage, (860, 530))
+    elif pathfinder.algorithm == 7:
+        screen.blit(JPSImage, (860, 530))
     
     pathfinder.update()
     pygame.display.update()
+    fps_counter()
     clock.tick(60)
