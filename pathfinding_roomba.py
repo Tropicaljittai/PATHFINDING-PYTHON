@@ -50,7 +50,11 @@ class Pathfinder:
         if current_cell_value == 1:
             rect = pygame.Rect((col * 32, row * 32), (32, 32))
             screen.blit(self.select_surf, rect)
-
+    def active_cell_value(self):
+        mouse_pos = pygame.mouse.get_pos()
+        row = mouse_pos[1] // 32
+        col = mouse_pos[0] // 32
+        return self.matrix[row][col]
     def get_neighbors(self, node):
         neighbors = []
         directions = [
@@ -695,11 +699,11 @@ mixer.music.set_volume(0.5)
 walksound = mixer.Sound("sound/walk.wav")
 walking = False
 
-dijkstraImage = pygame.image.load("Icons/Dikstra.png")
-AStarImage = pygame.image.load("Icons/Star_Icon.png")
-BFSImage = pygame.image.load("Icons/BFS_ICON.png")
-DFSImage = pygame.image.load("Icons/DFS_ICON.png")
-BestFSImage = pygame.image.load("Icons/BestFS_ICON.png")
+dijkstraImage = pygame.image.load("Icons/DIJKSTRA.png")
+AStarImage = pygame.image.load("Icons/A_STAR.png")
+BFSImage = pygame.image.load("Icons/BFS.png")
+DFSImage = pygame.image.load("Icons/DFS.png")
+BestFSImage = pygame.image.load("Icons/BEST_FS.png")
 
 
 algo = 1
@@ -741,15 +745,17 @@ while True:
                     mixer.music.pause()
                 onMusic = False if onMusic else True
     if pathfinder.algorithm == 1:
-        screen.blit(dijkstraImage, (600, 400))
+        screen.blit(dijkstraImage, (860, 530))
     elif pathfinder.algorithm == 2:
-        screen.blit(AStarImage, (600, 400))
+        screen.blit(AStarImage, (860, 530))
     elif pathfinder.algorithm == 3:
-        screen.blit(BFSImage, (600, 400))
+        screen.blit(BFSImage, (860, 530))
     elif pathfinder.algorithm == 4:
-        screen.blit(BestFSImage, (600, 400))
+        screen.blit(BestFSImage, (860, 530))
     elif pathfinder.algorithm == 5:
-        screen.blit(DFSImage, (600, 400))
+        screen.blit(DFSImage, (860, 530))
+    
+    
     pathfinder.update()
     pygame.display.update()
     clock.tick(60)
