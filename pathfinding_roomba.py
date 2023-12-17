@@ -7,6 +7,7 @@ from pathfinding.finder.a_star import AStarFinder
 from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement
 
+import os
 from Node import *
 from PQ import PriorityQueue
 from collections import deque
@@ -101,6 +102,63 @@ class Pathfinder:
             current = parent[current]
         return path[::-1]
 
+    def iter_deepening_a_star_search(self, start_node, end_node):
+        # Initial threshold is the heuristic cost from the start to the end node
+        threshold = self.heuristic(start_node, end_node)
+
+        while True:
+            # Initialize the distance and parent dictionaries for this iteration
+            distance = {node: float('inf') for row in self.grid for node in row}
+            distance[start_node] = 0
+            parent = {node: None for row in self.grid for node in row}
+
+            # Perform the depth-limited search with the current threshold
+            temp = self.search(start_node, 0, threshold, end_node, distance, parent)
+            if temp == float('inf'):
+                # If temp is infinity, no path was found within the threshold
+                return None
+            elif temp == -1:
+                # If temp is -1, a path to the goal was found
+                # Reconstruct and return the path
+                path = []
+                current = end_node
+                while current:
+                    path.append(current)
+                    current = parent[current]
+                return path[::-1]
+            else:
+                # Increase the threshold for the next iteration
+                # This is the minimum f-cost that exceeded the current threshold
+                threshold = temp
+
+    def search(self, node, g, threshold, end_node, distance, parent):
+        # Calculate the f-cost for the node (g-cost + heuristic)
+        f = g + self.heuristic(node, end_node)
+        if f > threshold:
+            # If the f-cost exceeds the current threshold, return the f-cost
+            return f
+        if node == end_node:
+            # If the goal node is reached, return -1 to indicate success
+            return -1
+
+        # Initialize the minimum threshold for the next iteration
+        min_threshold = float('inf')
+        for successor in self.get_neighbors(node):
+            # Explore the neighbors of the current node
+            if distance[successor] > g + 1:
+                distance[successor] = g + 1
+                parent[successor] = node
+                # Recursively search from the neighbor
+                temp = self.search(successor, g + 1, threshold, end_node, distance, parent)
+
+                if temp == -1:
+                    # If the goal is found in the recursive search, return -1
+                    return -1
+                if temp < min_threshold:
+                    # Update the minimum threshold for the next iteration
+                    min_threshold = temp
+
+        return min_threshold
 
     def dijkstra_search(self, start_node, end_node):
         pq = PriorityQueue()
@@ -220,6 +278,8 @@ class Pathfinder:
         return path[::-1]
 
     def create_path(self):
+        global walksound
+        mixer.Sound.play(walksound, -1)
         start_x, start_y = self.roomba.sprite.get_coord()
         start_node = self.grid[start_y][start_x]
         mouse_pos = pygame.mouse.get_pos()
@@ -335,7 +395,9 @@ class Roomba(pygame.sprite.Sprite):
             self.face = "down"
 
     def update(self):
+        global walksound
         if not self.path and self.has_path:
+            mixer.Sound.fadeout(walksound, 1)
             # Path traversal is complete
             self.elapsed_time = time.time() - self.start_time
             global pathfinder
@@ -343,7 +405,62 @@ class Roomba(pygame.sprite.Sprite):
             print(f"Chosen Algorithm: {algo_names}")
             print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
             self.has_path = False  # Stop timing
+        
+        if pathfinder.algorithm == 1:
+            self.sprites = [pygame.image.load('up1.png'), pygame.image.load('up2.png'), pygame.image.load('down1.png'),
+						pygame.image.load('down2.png'), pygame.image.load('left1.png'), pygame.image.load('left2.png'),
+						pygame.image.load('right1.png'), pygame.image.load('right2.png')]
+        if pathfinder.algorithm == 2:
+            original_image = pygame.image.load('char2/Male.png')
 
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+        if pathfinder.algorithm == 3:
+            original_image = pygame.image.load('char2/Female.png')
+
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+            
         self.spriteCounter += 1
         if self.spriteCounter > 17:
             if self.spriteNum == 1:
@@ -410,7 +527,6 @@ matrix = [
     [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-
 pathfinder = Pathfinder(matrix)
 font = pygame.font.SysFont("comicsansms", 25)
 
@@ -420,7 +536,19 @@ music = mixer.music.load("sound/BGM.wav")
 mixer.music.play(-1)
 mixer.music.set_volume(0.5)
 
+walksound = mixer.Sound("sound/walk.wav")
+
+dijkstraImage = pygame.image.load("Icons/Dikstra.png")
+AStarImage = pygame.image.load("Icons/Star_Icon.png")
+BFSImage = pygame.image.load("Icons/BFS_ICON.png")
+DFSImage = pygame.image.load("Icons/DFS_ICON.png")
+BestFSImage = pygame.image.load("Icons/BestFS_ICON.png")
+
+
+algo = 1
+
 while True:
+    screen.blit(bg_surf, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -449,8 +577,16 @@ while True:
                 else:
                     mixer.music.pause()
                 onMusic = False if onMusic else True
-				
-    screen.blit(bg_surf, (0, 0))
+    if pathfinder.algorithm == 1:
+        screen.blit(dijkstraImage, (600, 400))
+    elif pathfinder.algorithm == 2:
+        screen.blit(AStarImage, (600, 400))
+    elif pathfinder.algorithm == 3:
+        screen.blit(BFSImage, (600, 400))
+    elif pathfinder.algorithm == 4:
+        screen.blit(BestFSImage, (600, 400))
+    elif pathfinder.algorithm == 5:
+        screen.blit(DFSImage, (600, 400))
     pathfinder.update()
     pygame.display.update()
     clock.tick(60)
