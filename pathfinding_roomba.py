@@ -1,22 +1,25 @@
 import time
 
 import pygame, sys
+from pygame import mixer
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement
+
 from Node import *
 from PQ import PriorityQueue
 from collections import deque
 
 class Pathfinder:
-    def __init__(self, matrix):
+    def __init__(self, matrix, algorithm = 1):
 
         # setup
         self.matrix = matrix
         self.grid = [[Node(col, row) for col in range(len(matrix[0]))] for row in range(len(matrix))]
         self.select_surf = pygame.image.load('selection.png').convert_alpha()
-
+        self.algorithm = algorithm
+        
         # pathfinding
         self.path = []
 
@@ -50,6 +53,7 @@ class Pathfinder:
 
     def heuristic(self, node, end):
         return abs(node.col - end.col) + abs(node.row - end.row)
+    
     def a_star_search(self, start_node, end_node):
         pq = PriorityQueue()
         start_node.distance = 0
@@ -148,6 +152,7 @@ class Pathfinder:
             path.append(current)
             current = parent.get(current)
         return path[::-1]
+    
     def bestfs_search(self, start_node, end_node):
 
         pq = PriorityQueue()
@@ -211,9 +216,17 @@ class Pathfinder:
         end_x, end_y = mouse_pos[0] // 32, mouse_pos[1] // 32
         end_node = self.grid[end_y][end_x]
 
+        if self.algorithm == 1:
+            self.path = self.dijkstra_search(start_node, end_node)
+        elif self.algorithm == 2:
+            self.path = self.a_star_search(start_node, end_node)
+        elif self.algorithm == 3:
+            self.path = self.bfs_search(start_node, end_node)  
+        elif self.algorithm == 4:
+            self.path = self.bestfs_search(start_node, end_node)  
+        elif self.algorithm == 5:
+            self.path = self.dfs_search(start_node, end_node) 
 
-
-        self.path = self.bestfs_search(start_node, end_node)
         self.roomba.sprite.set_path(self.path)
 
     def draw_path(self):
@@ -234,18 +247,14 @@ class Roomba(pygame.sprite.Sprite):
     def __init__(self, empty_path):
         self.spriteCounter = 0
         self.spriteNum = 1
+        self.algorithm = 0
+        
         # basic
         super().__init__()
         self.face = ""
-        self.sprites = []
-        self.sprites.append(pygame.image.load('up1.png'))
-        self.sprites.append(pygame.image.load('up2.png'))
-        self.sprites.append(pygame.image.load('down1.png'))
-        self.sprites.append(pygame.image.load('down2.png'))
-        self.sprites.append(pygame.image.load('left1.png'))
-        self.sprites.append(pygame.image.load('left2.png'))
-        self.sprites.append(pygame.image.load('right1.png'))
-        self.sprites.append(pygame.image.load('right2.png'))
+        self.sprites = [pygame.image.load('up1.png'), pygame.image.load('up2.png'), pygame.image.load('down1.png'),
+						pygame.image.load('down2.png'), pygame.image.load('left1.png'), pygame.image.load('left2.png'),
+						pygame.image.load('right1.png'), pygame.image.load('right2.png')]
         self.current_sprite = 0
         self.image = self.sprites[self.current_sprite]
         self.rect = self.image.get_rect(center=(320, 256))
@@ -319,6 +328,8 @@ class Roomba(pygame.sprite.Sprite):
         if not self.path and self.has_path:
             # Path traversal is complete
             self.elapsed_time = time.time() - self.start_time
+            global pathfinder
+            print(f"Chosen Algorithm: {pathfinder.algorithm}")
             print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
             self.has_path = False  # Stop timing
 
@@ -377,7 +388,6 @@ matrix = [
     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
     [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1],
     [0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1],
-
     [0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0],
     [1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -391,6 +401,13 @@ matrix = [
 
 
 pathfinder = Pathfinder(matrix)
+font = pygame.font.SysFont("comicsansms", 25)
+
+onMusic = True
+
+music = mixer.music.load("sound/BGM.wav")
+mixer.music.play(-1)
+mixer.music.set_volume(0.5)
 
 while True:
     for event in pygame.event.get():
@@ -399,6 +416,29 @@ while True:
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             pathfinder.create_path()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 1
+            elif event.key == pygame.K_2:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 2
+            elif event.key == pygame.K_3:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 3
+            elif event.key == pygame.K_4:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 4
+            elif event.key == pygame.K_5:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 5
+            elif event.key == pygame.K_m:
+                if onMusic:
+                    mixer.music.unpause()
+                else:
+                    mixer.music.pause()
+                onMusic = False if onMusic else True
+				
     screen.blit(bg_surf, (0, 0))
     pathfinder.update()
     pygame.display.update()
