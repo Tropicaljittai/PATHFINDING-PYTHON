@@ -1,5 +1,5 @@
 import time
-import os
+
 import pygame, sys
 from pygame import mixer
 from pathfinding.core.grid import Grid
@@ -159,7 +159,7 @@ class Pathfinder:
                     min_threshold = temp
 
         return min_threshold
-    
+
     def dijkstra_search(self, start_node, end_node):
         pq = PriorityQueue()
         start_node.distance = 0
@@ -287,7 +287,7 @@ class Pathfinder:
         end_node = self.grid[end_y][end_x]
 
         if self.algorithm == 1:
-            self.path = self.dijkstra_search(start_node, end_node)  
+            self.path = self.dijkstra_search(start_node, end_node)
         elif self.algorithm == 2:
             self.path = self.a_star_search(start_node, end_node)
         elif self.algorithm == 3:
@@ -403,9 +403,64 @@ class Roomba(pygame.sprite.Sprite):
             global pathfinder
             algo_names = pathfinder.get_algorithm_name()
             print(f"Chosen Algorithm: {algo_names}")
-            print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds at speed = 3")
+            print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
             self.has_path = False  # Stop timing
+        
+        if pathfinder.algorithm == 1:
+            self.sprites = [pygame.image.load('up1.png'), pygame.image.load('up2.png'), pygame.image.load('down1.png'),
+						pygame.image.load('down2.png'), pygame.image.load('left1.png'), pygame.image.load('left2.png'),
+						pygame.image.load('right1.png'), pygame.image.load('right2.png')]
+        if pathfinder.algorithm == 2:
+            original_image = pygame.image.load('char2/Male.png')
 
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+        if pathfinder.algorithm == 3:
+            original_image = pygame.image.load('char2/Female.png')
+
+            rows, columns = 3, 4
+
+            sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
+            frame_size = (48, 48)
+            final_images = []
+
+            for row in range(rows):
+                for col in range(columns):
+                    x = col * sub_image_size[0]
+                    y = row * sub_image_size[1]
+                    sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+
+                    frame = pygame.Surface(frame_size, pygame.SRCALPHA)
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+
+                    frame.blit(sub_image, (frame_x, frame_y))
+                    final_images.append(frame)
+
+            self.sprites = [final_images[0], final_images[1], final_images[2], final_images[3], final_images[0], final_images[1], final_images[2], final_images[3]]
+            self.sprites[4] = pygame.transform.flip(self.sprites[4], True, False)
+            self.sprites[5] = pygame.transform.flip(self.sprites[5], True, False)
+            
         self.spriteCounter += 1
         if self.spriteCounter > 17:
             if self.spriteNum == 1:
