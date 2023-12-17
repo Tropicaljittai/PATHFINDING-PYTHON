@@ -657,9 +657,10 @@ class Roomba(pygame.sprite.Sprite):
             self.sprites = [final_images[7], final_images[10], final_images[19], final_images[22], final_images[16], final_images[12], final_images[3], final_images[1]]
 
         if pathfinder.algorithm == 7:
-            original_image = pygame.image.load('Characters_free/bob.png')
+            original_image = pygame.image.load('zeld.png')
+            original_image = pygame.transform.scale(original_image, (original_image.get_width() // 3, original_image.get_height() // 3))
 
-            rows, columns = 1, 24
+            rows, columns = 8, 10
 
             sub_image_size = (original_image.get_width() // columns, original_image.get_height() // rows)
             frame_size = (48, 48)
@@ -670,15 +671,16 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
-                    
+                    sub_image = pygame.transform.scale(sub_image, (sub_image.get_width() // 1.8, sub_image.get_height() // 1.8))
+
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
-                    frame_x = (frame_size[0] - sub_image_size[0]) // 2
-                    frame_y = (frame_size[1] - sub_image_size[1]) // 2
+                    frame_x = (frame_size[0] - sub_image_size[0]) // 2+8
+                    frame_y = (frame_size[1] - sub_image_size[1]) // 2+8
 
                     frame.blit(sub_image, (frame_x, frame_y))
                     final_images.append(frame)
 
-            self.sprites = [final_images[7], final_images[10], final_images[19], final_images[22], final_images[16], final_images[12], final_images[3], final_images[1]]
+            self.sprites = [final_images[63], final_images[68], final_images[43], final_images[47], final_images[56], final_images[51], final_images[75], final_images[71]]
 
         self.spriteCounter += 1
         if self.spriteCounter > 17:
