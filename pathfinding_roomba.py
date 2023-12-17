@@ -543,6 +543,7 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    sub_image = pygame.transform.scale(sub_image, (sub_image.get_width() * 1.2, sub_image.get_height() * 1.2))
 
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
                     frame_x = (frame_size[0] - sub_image_size[0]) // 2
@@ -568,6 +569,7 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
+                    sub_image = pygame.transform.scale(sub_image, (sub_image.get_width() * 1.2, sub_image.get_height() * 1.2))
 
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
                     frame_x = (frame_size[0] - sub_image_size[0]) // 2
@@ -594,7 +596,7 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
-                    
+                    sub_image = pygame.transform.scale(sub_image, (sub_image.get_width() * 1.2, sub_image.get_height() * 1.2))
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
                     frame_x = (frame_size[0] - sub_image_size[0]) // 2
                     frame_y = (frame_size[1] - sub_image_size[1]) // 2
@@ -620,7 +622,8 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
-                    
+                    sub_image = pygame.transform.scale(sub_image, (sub_image.get_width() * 1.2, sub_image.get_height() * 1.2))
+
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
                     frame_x = (frame_size[0] - sub_image_size[0]) // 2
                     frame_y = (frame_size[1] - sub_image_size[1]) // 2
@@ -646,7 +649,7 @@ class Roomba(pygame.sprite.Sprite):
                     x = col * sub_image_size[0]
                     y = row * sub_image_size[1]
                     sub_image = original_image.subsurface(pygame.Rect(x, y, sub_image_size[0], sub_image_size[1]))
-                    
+
                     frame = pygame.Surface(frame_size, pygame.SRCALPHA)
                     frame_x = (frame_size[0] - sub_image_size[0]) // 2
                     frame_y = (frame_size[1] - sub_image_size[1]) // 2
