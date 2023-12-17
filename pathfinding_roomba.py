@@ -36,7 +36,8 @@ class Pathfinder:
             2: "A*",
             3: "BFS",
             4: "Best-First Search",
-            5: "DFS"
+            5: "DFS",
+            6: "Iterative Deeping A*"
         }
         return algorithm_names.get(self.algorithm, "Unknown Algorithm")
 
@@ -278,8 +279,10 @@ class Pathfinder:
         return path[::-1]
 
     def create_path(self):
-        global walksound
-        mixer.Sound.play(walksound, -1)
+        global walksound, walking
+        if not walking:
+            walking = True
+            mixer.Sound.play(walksound, -1)
         start_x, start_y = self.roomba.sprite.get_coord()
         start_node = self.grid[start_y][start_x]
         mouse_pos = pygame.mouse.get_pos()
@@ -296,6 +299,8 @@ class Pathfinder:
             self.path = self.bestfs_search(start_node, end_node)  
         elif self.algorithm == 5:
             self.path = self.dfs_search(start_node, end_node) 
+        elif self.algorithm == 6:
+            self.path = self.iter_deepening_a_star_search(start_node, end_node) 
 
         self.roomba.sprite.set_path(self.path)
 
@@ -395,12 +400,12 @@ class Roomba(pygame.sprite.Sprite):
             self.face = "down"
 
     def update(self):
-        global walksound
+        global walksound, pathfinder, walking
         if not self.path and self.has_path:
+            walking = False
             mixer.Sound.fadeout(walksound, 1)
             # Path traversal is complete
             self.elapsed_time = time.time() - self.start_time
-            global pathfinder
             algo_names = pathfinder.get_algorithm_name()
             print(f"Chosen Algorithm: {algo_names}")
             print(f"Time taken to reach the endpoint: {self.elapsed_time:.2f} seconds")
@@ -537,6 +542,7 @@ mixer.music.play(-1)
 mixer.music.set_volume(0.5)
 
 walksound = mixer.Sound("sound/walk.wav")
+walking = False
 
 dijkstraImage = pygame.image.load("Icons/Dikstra.png")
 AStarImage = pygame.image.load("Icons/Star_Icon.png")
@@ -571,6 +577,9 @@ while True:
             elif event.key == pygame.K_5:
                 mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
                 pathfinder.algorithm = 5
+            elif event.key == pygame.K_6:
+                mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
+                pathfinder.algorithm = 6
             elif event.key == pygame.K_m:
                 if onMusic:
                     mixer.music.unpause()
