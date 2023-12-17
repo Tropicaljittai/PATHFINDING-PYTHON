@@ -1,5 +1,5 @@
 import time
-
+import tracemalloc
 import pygame, sys
 from pygame import mixer
 from pathfinding.core.grid import Grid
@@ -27,6 +27,7 @@ class Pathfinder:
         # Roomba
         self.roomba = pygame.sprite.GroupSingle(Roomba(self.empty_path))
 
+
     def empty_path(self):
         self.path = []
 
@@ -50,11 +51,13 @@ class Pathfinder:
         if current_cell_value == 1:
             rect = pygame.Rect((col * 32, row * 32), (32, 32))
             screen.blit(self.select_surf, rect)
+
     def active_cell_value(self):
         mouse_pos = pygame.mouse.get_pos()
         row = mouse_pos[1] // 32
         col = mouse_pos[0] // 32
         return self.matrix[row][col]
+    
     def get_neighbors(self, node):
         neighbors = []
         directions = [
@@ -405,8 +408,21 @@ class Pathfinder:
         elif self.algorithm == 7:
             self.path = self.jump_point_search(start_node, end_node) 
 
-        self.roomba.sprite.set_path(self.path)
+        self.mark_unvisited_neighbors(start_node)
 
+        self.roomba.sprite.set_path(self.path)
+        snapshot = tracemalloc.take_snapshot()
+        for stat in snapshot.statistics("lineno"):
+            print(stat)
+        print(tracemalloc.get_traced_memory())
+
+    # displaying the memory in bytes (current and peak)
+    def mark_unvisited_neighbors(self, current_node):
+        for neighbor in self.get_neighbors(current_node):
+            if neighbor not in self.path:
+                rect = pygame.Rect((neighbor.col * 32, neighbor.row * 32), (32, 32))
+                pygame.draw.rect(screen, (255, 0, 0), rect, 3)
+                
     def draw_path(self):
         if self.path and len(self.path) > 1:
             points = [(node.col * 32 + 16, node.row * 32 + 16) for node in self.path]
@@ -688,8 +704,6 @@ matrix = [
     [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]]
 
 pathfinder = Pathfinder(matrix)
-font = pygame.font.SysFont("comicsansms", 25)
-
 onMusic = True
 
 music = mixer.music.load("sound/BGM.wav")
@@ -715,7 +729,9 @@ while True:
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
+            tracemalloc.start()
             pathfinder.create_path()
+            tracemalloc.stop()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:
                 mixer.Sound.play(mixer.Sound("sound/confirm.wav"))
