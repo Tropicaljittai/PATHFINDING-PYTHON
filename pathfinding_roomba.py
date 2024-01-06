@@ -70,6 +70,7 @@ class Pathfinder:
         return abs(node.col - end.col) + abs(node.row - end.row)
     
     def a_star_search(self, start_node, end_node):
+        self.start_time = time.time()
         pq = PriorityQueue()
         start_node.distance = 0
         pq.add(start_node)
@@ -104,53 +105,75 @@ class Pathfinder:
         while current is not None:
             path.append(current)
             current = parent[current]
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
 
     def iter_deepening_a_star_search(self, start_node, end_node):
+        self.start_time = time.time()
+
+        # Initial threshold is the heuristic cost from the start to the end node
         threshold = self.heuristic(start_node, end_node)
 
         while True:
+            # Initialize the distance and parent dictionaries for this iteration
             distance = {node: float('inf') for row in self.grid for node in row}
             distance[start_node] = 0
             parent = {node: None for row in self.grid for node in row}
 
+            # Perform the depth-limited search with the current threshold
             temp = self.search(start_node, 0, threshold, end_node, distance, parent)
             if temp == float('inf'):
+                # If temp is infinity, no path was found within the threshold
                 return None
             elif temp == -1:
-
+                # If temp is -1, a path to the goal was found
+                # Reconstruct and return the path
                 path = []
                 current = end_node
                 while current:
                     path.append(current)
                     current = parent[current]
+                self.elapsed_time = time.time() - self.start_time
+                print(f"Time: {self.elapsed_time} seconds")
                 return path[::-1]
             else:
+                # Increase the threshold for the next iteration
+                # This is the minimum f-cost that exceeded the current threshold
                 threshold = temp
 
     def search(self, node, g, threshold, end_node, distance, parent):
+        # Calculate the f-cost for the node (g-cost + heuristic)
         f = g + self.heuristic(node, end_node)
         if f > threshold:
+            # If the f-cost exceeds the current threshold, return the f-cost
             return f
         if node == end_node:
+            # If the goal node is reached, return -1 to indicate success
             return -1
 
+        # Initialize the minimum threshold for the next iteration
         min_threshold = float('inf')
         for successor in self.get_neighbors(node):
+            # Explore the neighbors of the current node
             if distance[successor] > g + 1:
                 distance[successor] = g + 1
                 parent[successor] = node
+                # Recursively search from the neighbor
                 temp = self.search(successor, g + 1, threshold, end_node, distance, parent)
 
                 if temp == -1:
+                    # If the goal is found in the recursive search, return -1
                     return -1
                 if temp < min_threshold:
+                    # Update the minimum threshold for the next iteration
                     min_threshold = temp
 
         return min_threshold
 
  
     def jump_point_search(self, start_node, end_node):
+        self.start_time = time.time()
         pq = PriorityQueue()
         start_node.distance = 0
         pq.add(start_node)
@@ -184,6 +207,8 @@ class Pathfinder:
         while current is not None:
             path.append(current)
             current = parent[current]
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
 
     def get_jps_neighbors(self, node, end_node):
@@ -246,6 +271,7 @@ class Pathfinder:
         return forced_neighbors
 
     def dijkstra_search(self, start_node, end_node):
+        self.start_time = time.time()
         pq = PriorityQueue()
         start_node.distance = 0
         pq.add(start_node)
@@ -279,10 +305,13 @@ class Pathfinder:
         while current is not None:
             path.append(current)
             current = parent[current]
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
 
 
     def bfs_search(self, start_node, end_node):
+        self.start_time = time.time()
         queue = deque([start_node])
         visited = {start_node}
         parent = {start_node: None}
@@ -304,10 +333,12 @@ class Pathfinder:
         while current:
             path.append(current)
             current = parent.get(current)
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
     
     def bestfs_search(self, start_node, end_node):
-
+        self.start_time = time.time()
         pq = PriorityQueue()
         start_node.distance = self.heuristic(start_node, end_node)  # Initialize distance using heuristic
         pq.add(start_node)
@@ -334,9 +365,12 @@ class Pathfinder:
         while current:
             path.append(current)
             current = parent.get(current)
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
 
     def dfs_search(self, start_node, end_node):
+        self.start_time = time.time()
         stack = [start_node]
         visited = set()
         parent = {start_node: None}
@@ -360,7 +394,10 @@ class Pathfinder:
         while current:
             path.append(current)
             current = parent.get(current)
+        self.elapsed_time = time.time() - self.start_time
+        print(f"Time: {self.elapsed_time} seconds")
         return path[::-1]
+        
 
     def create_path(self):
         global walksound, walking
